@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from markdownify import markdownify
 
 from .utils import ContentCleaner
+from .svg_converter import SVGToD2Converter
 
 logger = logging.getLogger(__name__)
 
@@ -13,17 +14,31 @@ logger = logging.getLogger(__name__)
 class MarkdownConverter:
     """Converts HTML content to clean Markdown format."""
     
-    def __init__(self, heading_style: str = "ATX", strip_navigation: bool = True):
+    def __init__(self, heading_style: str = "ATX", strip_navigation: bool = True, 
+                 svg_api_base_url: str = None, svg_api_key: str = None, svg_model: str = "gpt-4o-mini"):
         """
         Initialize the converter.
         
         Args:
             heading_style: Style for headings ("ATX" or "SETEXT")
             strip_navigation: Whether to remove navigation elements
+            svg_api_base_url: OpenAI-compatible API base URL for SVG conversion
+            svg_api_key: API key for SVG conversion
+            svg_model: Model name for SVG conversion
         """
         self.heading_style = heading_style
         self.strip_navigation = strip_navigation
-        self.cleaner = ContentCleaner()
+        
+        # Initialize SVG converter if API details provided
+        svg_converter = None
+        if svg_api_base_url or svg_api_key:
+            try:
+                svg_converter = SVGToD2Converter(svg_api_base_url, svg_api_key, svg_model)
+                logger.info("SVG converter initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize SVG converter: {e}")
+        
+        self.cleaner = ContentCleaner(svg_converter)
         
     def extract_main_content(self, html_content: str, url: str = None) -> Optional[BeautifulSoup]:
         """
@@ -170,11 +185,25 @@ class MarkdownConverter:
             if title:
                 result['title'] = title
                 
+            # Extract and convert SVG flowcharts before markdown conversion
+            svg_replacements = {}
+            if self.cleaner.svg_converter:
+                html_content = str(main_content)
+                html_content, svg_replacements = self.cleaner.extract_and_convert_svgs(html_content)
+                main_content = BeautifulSoup(html_content, 'html.parser')
+            
             # Convert to markdown
             markdown_content = self.html_to_markdown(main_content)
             if markdown_content:
+                # Insert SVG ASCII diagrams
+                if svg_replacements:
+                    markdown_content = self.cleaner.insert_svg_replacements(markdown_content, svg_replacements)
                 # Clean markdown links
                 markdown_content = self.cleaner.clean_markdown_links(markdown_content)
+                # Remove DeepWiki navigation and promotional chrome
+                markdown_content = self.cleaner.remove_deepwiki_chrome(markdown_content)
+                # Filter out CSS/Mermaid content
+                markdown_content = self.cleaner.filter_css_mermaid_content(markdown_content)
                 result['content'] = markdown_content
                 result['success'] = True
                 

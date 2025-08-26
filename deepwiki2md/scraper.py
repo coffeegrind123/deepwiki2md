@@ -19,17 +19,18 @@ logger = logging.getLogger(__name__)
 class DeepWikiScraper:
     """Main scraper class for extracting DeepWiki content using PyDoll."""
     
-    def __init__(self, output_dir: str = "output", headless: bool = True):
+    def __init__(self, output_dir: str = "output", headless: bool = True, converter_kwargs: dict = None):
         """
         Initialize the scraper.
         
         Args:
             output_dir: Directory to save markdown files
             headless: Whether to run browser in headless mode
+            converter_kwargs: Additional kwargs for MarkdownConverter
         """
         self.output_dir = Path(output_dir)
         self.headless = headless
-        self.converter = MarkdownConverter()
+        self.converter = MarkdownConverter(**(converter_kwargs or {}))
         self.file_utils = FileUtils()
         
         # Ensure output directory exists
@@ -154,9 +155,11 @@ class DeepWikiScraper:
         """
         options = ChromiumOptions()
         if self.headless:
-            options.add_argument("--headless")
+            options.add_argument("--headless=new")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--window-size=1920,1080")
         async with Chrome(options=options) as browser:
             try:
                 tab = await browser.start()
@@ -204,9 +207,11 @@ class DeepWikiScraper:
         
         options = ChromiumOptions()
         if self.headless:
-            options.add_argument("--headless")
+            options.add_argument("--headless=new")
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--window-size=1920,1080")
         async with Chrome(options=options) as browser:
             try:
                 tab = await browser.start()

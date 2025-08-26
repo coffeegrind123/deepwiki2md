@@ -19,4 +19,4 @@ except ImportError:
     _USE_PYDOLL = False
 
 __version__ = "1.0.0"
-__all__ = ["DeepWikiScraper", "MarkdownConverter", "DeepWikiURL"]
+__all__ = ["DeepWikiScraper", "MarkdownConverter", "DeepWikiURL", "_USE_PYDOLL"]

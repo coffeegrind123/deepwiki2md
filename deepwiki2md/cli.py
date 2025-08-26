@@ -23,9 +23,19 @@ def setup_logging(verbose: bool = False) -> None:
 
 async def scrape_command(args) -> None:
     """Execute the scrape command."""
+    # Prepare converter kwargs for SVG conversion
+    converter_kwargs = {}
+    if args.svg_api_base_url:
+        converter_kwargs['svg_api_base_url'] = args.svg_api_base_url
+    if args.svg_api_key:
+        converter_kwargs['svg_api_key'] = args.svg_api_key
+    if args.svg_model:
+        converter_kwargs['svg_model'] = args.svg_model
+    
     scraper = DeepWikiScraper(
         output_dir=args.output_dir,
-        headless=not args.show_browser
+        headless=not args.show_browser,
+        converter_kwargs=converter_kwargs
     )
     
     if len(args.urls) == 1:
@@ -90,6 +100,19 @@ Examples:
         '--show-browser',
         action='store_true',
         help='Show browser window (default: headless)'
+    )
+    scrape_parser.add_argument(
+        '--svg-api-base-url',
+        help='OpenAI-compatible API base URL for SVG flowchart conversion (e.g., http://localhost:1234/v1)'
+    )
+    scrape_parser.add_argument(
+        '--svg-api-key',
+        help='API key for SVG flowchart conversion'
+    )
+    scrape_parser.add_argument(
+        '--svg-model',
+        default='gpt-4o-mini',
+        help='Model name for SVG flowchart conversion (default: gpt-4o-mini)'
     )
     
     args = parser.parse_args()

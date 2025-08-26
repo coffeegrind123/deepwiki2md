@@ -9,7 +9,7 @@ description = "A modern Python package for scraping DeepWiki content to Markdown
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Claude Code", email = "noreply@anthropic.com"}
+    {name = "deepwiki2md", email = "contact@deepwiki2md.dev"}
 ]
 keywords = ["scraping", "markdown", "deepwiki", "documentation", "pydoll"]
 classifiers = [
@@ -28,10 +28,10 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
-    "pydoll-python>=1.0.0",
-    "beautifulsoup4>=4.9.0",
-    "markdownify>=0.11.0",
-    "pathlib",
+    "pydoll-python>=2.0.0",
+    "beautifulsoup4>=4.12.0",
+    "markdownify>=0.11.6",
+    "requests>=2.28.0",
 ]
 
 [project.optional-dependencies]
